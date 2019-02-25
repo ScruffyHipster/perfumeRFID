@@ -5,6 +5,7 @@ function TagManager() {
 
   this.storeTag = function(data) {
     tagData.push(data);
+    twoTags.addTag(uid);
   };
 
   this.clearData = function() {
@@ -16,42 +17,119 @@ function TagManager() {
       for(var i = 0; i < tagData.length; i++) {
         if(tagData[i] == uid) {
           var array = tagData.splice(i, 1);
+          twoTags.removeTag(uid);
           tagData = array;
         }
       }
     }
   }
 
-  this.checkTagData = function() {
+
+  this.countTags = function() {
+    return tagData.length;
+  }
+
+  //checks the information of the tag passed into the array
+  this.checkTagData = function () {
     printOut("Checking tag data");
-    for(var i = 0; i < tagData.length; i++) {
-      var info = tagData[i];
-      printOut("from the array " + info);
-      for(var b = 0; b < productsArray.length; b++) {
-        var product = productsArray[b];
-        var id = product.getProductId();
-        printOut("The id is " + id);
-        if(info == id) {
-          printOut("Got the id " + id + " for product " + product.getProductName());
-          printOut("Going to the sign for this product");
-          var sign = product.getSignName();
-          switch(sign) {
-            case "perfume1":
-              printOut("perfume 1");
-              break;
-            case "perfume2":
-              printOut("perfume 2");
-              break;
-          }
-        }
+    for(var tag = 0; tag < tagData.length; tag ++) {
+      var tagInfo = tagData[tag];
+      return tagInfo;
+    }
+  }
+
+
+  this.checkProduct = function(tagId) {
+    printOut("Checking product info for tag id " + tagId);
+    for(var product = 0; product < productsArray.length; product ++) {
+      var prod = productsArray[product];
+      var id = prod.getProductId();
+      if(id == tagId) {
+        //We know the tag id and the product id match so we can return the id for use.
+        return prod;
+      } else {
+        printOut('Tag id not the same as the product id');
       }
+    } return null;
+  }
+
+}
+
+/////////////////////class tag manager////////////////////////
+
+/////////////////////class Navigation/////////////////////////
+
+function NavigationController() {
+
+  this.changeSign = function(productId) {
+    var signNameToJump = productId.getSignName();
+    switch(signNameToJump) {
+      case "perfume1":
+        //jump to sign
+      case "perfume2":
+        //jump to sign
+    }
+  }
+
+
+
+  //reset to home screen
+  this.returnToHomeScreen = function() {
+    var current = getCurrentSignInfo()
+    if(current != homeScreenSign) {
+      jumpToSign(homeScreenSign);
     }
   }
 }
-/////////////////////class tag manager////////////////////////
+
+/////////////////////class Navigation/////////////////////////
+
+/////////////////////class Selected duo//////////////////////
+
+//used to keep track of the tags picked up
+function TwoSelectedTags() {
+
+  this.tagOne = null;
+  this.tagTwo = null;
+
+  //if a tag is already selected bump it to the tag b and reassign tag a
+  this.addTag = function(tagId) {
+    if (this.tagOne != null) {
+      this.tagTwo = this.tagOne
+    }
+    this.tagOne = tagId
+  }
+
+  //removes the selected tag
+  //if tag one is set back, set two to one and set two to null
+  //if tagtwo is put back set it to null
+  this.removeTag = function(knownTag) {
+    if(this.tagOne == knownTag) {
+      this.tagOne = this.tagTwo;
+      this.tagTwo = null;
+    } else if (this.tagTwo == knownTag) {
+      this.tagTwo = null;
+    }
+  }
+
+  this.twoSelected = function() {
+    return (this.tagOne != null && this.tagTwo != null);
+  }
+
+  this.getTagOne = function() {
+    return this.tagOne;
+  }
+
+  this.getTagTwo = function() {
+    return this.tagTwo;
+  }
+
+}
+
+/////////////////////class Selected duo//////////////////////
 
 ////////////////////class product info////////////////////////
-function ProductInformation(productName, productID, signName) {
+function Product(productName, productID, signName) {
 
   this.productId = productID;
   this.productName = productName;
@@ -83,11 +161,15 @@ function ProductInformation(productName, productID, signName) {
 
 
 const manager = new TagManager();
-const perfume1 = new ProductInformation("Perfume1", "04D92C2A", "perfume1");
-const perfume2 = new ProductInformation("Perfume2", "04E12C2A", "perfume2");
+const navigationController = new NavigationController();
+const twoTags = new TwoSelectedTags();
+const perfume1 = new Product("Perfume1", "04D92C2A", "perfume1");
+const perfume2 = new Product("Perfume2", "04E12C2A", "perfume2");
 
 var vendor = '1B4F';
 var product = '9204';
+
+const homeScreenSign = "HomeScreen";
 
 var deviceArray = [];
 var tagData = [];
@@ -147,31 +229,46 @@ function onPermissionGranted(devicePath, success) {
 function globalOnDataRead(connectionId, hexData) {
   SignStixDebug.info("Now going to read the data");
   printOut("received hex data " + hexData);
-  var layer = SignStixGraphics.getLayerNamed('textLayer');
 
   layer.setText(hexData);
   SignStixGraphics.updateDisplay();
 
   var value = dataRead(hexData);
-
-  // var command = value.splice(hexData.length, - 2);
-  // var tagUID = value.splice(hexData.length, 8);
+  var amount = manager.countTags();
 
   manager.storeTag(hexData);
-  printOut(value);
+
+  //Check the tag data and find the product related to it
+  var uid = manager.checkTagData();
+  var product = manager.checkProduct(id);
+  //add the product to the twoProduct Class
+
   switch(value) {
+    case 42:
+    //suggests product picked up;
+    //check for tag in tag data Array
+    //present the product on screen
+    if(twoTags.twoSelected()) {
+      printOut("Jumping to sign which shows two products");
+      // navigationController.changeSign("signWithTwoProducts");
+    } else {
+      printOut("Jumping to sign " + product.getSignName());
+      // navigationController.changeSign(product);
+    }
+    break;
     case 50:
     //suggests product has been placed back;
     //check for tag in tag Array
     manager.removeTagData(hexData);
-    //remove tag from the array
-      break;
-    case 42:
-    //suggests product picked up;
-    manager.checkTagData();
-    //check for tag in tag data Array
-    //present the product on screen
-      break;
+    //check if a tag is left, if not revert to the last tag sign
+    if(amount == 0) {
+      printOut("returning to home screen");
+      // navigationController.returnToHomeScreen();
+    } else {
+      printOut("Only one tag left, ")
+      navigationController.changeSign(product);
+    }
+    break;
   }
 }
 
@@ -184,11 +281,46 @@ function dataRead(hex) {
   return parseFloat(value);
 }
 
+/* Convert the argunment string of data and convert to an array of bytes*/
 function hexToBytes(hex) {
   for (var bytes = [], a = 0; a < hex.length; a += 2)
   bytes.push(parseInt(hex.substr(a, 2), 16));
   return bytes;
 }
+
+/* Convert the bytes in the argument byte array at the argument offset into a hex string. */
+function bytesToHex(bytes, offset, length) {
+  for (var hex = [], i = 0; i < length; i++) {
+    hex.push((bytes[offset + i] >>> 4).toString(16).toUpperCase());
+    hex.push((bytes[offset + i] & 0xF).toString(16).toUpperCase());
+  }
+  return hex.join("");
+}
+
+/* Convert the argument text to ASCII hex. */
+function textToHex(text) {
+  var len = text.length;
+  var bytes = new Array();
+  for (var i = 0; i < len; i++) {
+    var char = text.charCodeAt(i);
+    bytes.push(char);
+  }
+  var hex = bytesToHex(bytes, 0, len);
+  return hex;
+}
+
+/* Convert the argument hex string to text, assuming the hex values are ASCII. */
+function hexToText(hex) {
+  var bytes = hexToBytes(hex);
+  var text = '';
+  for (var i = 0; i < bytes.length; i++) {
+    var b = bytes[i];
+    var char = String.fromCharCode(b);
+    text = text + char;
+  }
+  return text;
+}
+
 
 ///////////////////////////////////////////////////////////
 
