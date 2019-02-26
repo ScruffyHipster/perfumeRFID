@@ -1,57 +1,58 @@
 ///////////////Classs Tag manager////////////////////
 function TagManager() {
 
-  var tagData = [];
+    var tagData = [];
 
-  this.storeTag = function(data) {
-    tagData.push(data);
-    twoTags.addTag(uid);
-  };
+    this.storeTag = function(data) {
+      printOut("Storing tag data");
+      tagData.push(data);
+      twoTags.addTag(data);
+    };
 
-  this.clearData = function() {
-    tagData = [];
-  }
+    this.clearData = function() {
+      tagData = [];
+    }
 
-  this.removeTagData = function(uid) {
-    if(tagData.length > 0) {
-      for(var i = 0; i < tagData.length; i++) {
-        if(tagData[i] == uid) {
-          var array = tagData.splice(i, 1);
-          twoTags.removeTag(uid);
-          tagData = array;
+    this.removeTagData = function(uid) {
+      if(tagData.length > 0) {
+        for(var i = 0; i < tagData.length; i++) {
+          if(tagData[i] == uid) {
+            tagData.splice(i, 1);
+            twoTags.removeTag(uid);
+            printOut("removed tag");
+          }
         }
       }
     }
-  }
 
 
-  this.countTags = function() {
-    return tagData.length;
-  }
-
-  //checks the information of the tag passed into the array
-  this.checkTagData = function () {
-    printOut("Checking tag data");
-    for(var tag = 0; tag < tagData.length; tag ++) {
-      var tagInfo = tagData[tag];
-      return tagInfo;
+    this.countTags = function() {
+      return tagData.length;
     }
-  }
 
-
-  this.checkProduct = function(tagId) {
-    printOut("Checking product info for tag id " + tagId);
-    for(var product = 0; product < productsArray.length; product ++) {
-      var prod = productsArray[product];
-      var id = prod.getProductId();
-      if(id == tagId) {
-        //We know the tag id and the product id match so we can return the id for use.
-        return prod;
-      } else {
-        printOut('Tag id not the same as the product id');
+    //checks the information of the tag passed into the array
+    this.checkTagData = function () {
+      printOut("Checking tag data");
+      for(var tag = 0; tag < tagData.length; tag++) {
+        var tagInfo = tagData[tag];
+        return tagInfo;
       }
-    } return null;
-  }
+    }
+
+
+    this.checkProduct = function(tagId) {
+      printOut("Checking product info for tag id " + tagId);
+      for(var product = 0; product < productsArray.length; product++) {
+        var prod = productsArray[product];
+        var id = prod.getProductId();
+        if(id == tagId) {
+          //We know the tag id and the product id match so we can return the id for use.
+          return prod;
+        } else {
+          printOut('Tag id not the same as the product id');
+        }
+      } return null;
+    }
 
 }
 
@@ -61,25 +62,25 @@ function TagManager() {
 
 function NavigationController() {
 
-  this.changeSign = function(productId) {
-    var signNameToJump = productId.getSignName();
-    switch(signNameToJump) {
-      case "perfume1":
-        //jump to sign
-      case "perfume2":
-        //jump to sign
+
+    this.changeSign = function(productId) {
+      var signNameToJump = productId.getSignName();
+      switch(signNameToJump) {
+        case "perfume1":
+          //jump to sign
+        case "perfume2":
+          //jump to sign
+      }
     }
-  }
 
-
-
-  //reset to home screen
-  this.returnToHomeScreen = function() {
-    var current = getCurrentSignInfo()
-    if(current != homeScreenSign) {
-      jumpToSign(homeScreenSign);
+    //reset to home screen
+    this.returnToHomeScreen = function() {
+      var current = getCurrentSignInfo()
+      if(current != homeScreenSign) {
+        jumpToSign(homeScreenSign);
+      }
     }
-  }
+
 }
 
 /////////////////////class Navigation/////////////////////////
@@ -105,6 +106,7 @@ function TwoSelectedTags() {
   //if tagtwo is put back set it to null
   this.removeTag = function(knownTag) {
     if(this.tagOne == knownTag) {
+      this.tagOne = null;
       this.tagOne = this.tagTwo;
       this.tagTwo = null;
     } else if (this.tagTwo == knownTag) {
@@ -122,7 +124,7 @@ function TwoSelectedTags() {
 
   this.getTagTwo = function() {
     return this.tagTwo;
-  }
+    }
 
 }
 
@@ -131,30 +133,31 @@ function TwoSelectedTags() {
 ////////////////////class product info////////////////////////
 function Product(productName, productID, signName) {
 
-  this.productId = productID;
-  this.productName = productName;
-  this.signName = signName;
-  this.timesInteracted = 0;
+    this.productId = productID;
+    this.productName = productName;
+    this.signName = signName;
+    this.timesInteracted = 0;
 
-  this.getProductId = function() {
-    return this.productId;
-  }
+    this.getProductId = function() {
+      return this.productId;
+    }
 
-  this.getProductName = function() {
-    return this.productName;
-  }
+    this.getProductName = function() {
+      return this.productName;
+    }
 
-  this.getSignName = function() {
-    return this.signName;
-  }
+    this.getSignName = function() {
+      return this.signName;
+    }
 
-  this.increaseInteraction = function() {
-    this.timesInteracted ++;
-  }
+    this.increaseInteraction = function() {
+      this.timesInteracted ++;
+    }
 
-  this.showAmountInteracted = function() {
-    return this.timesInteracted;
-  }
+    this.showAmountInteracted = function() {
+      return this.timesInteracted;
+    }
+
 }
 
 ///////////////////class product manager///////////////////////
@@ -212,64 +215,75 @@ function getDeviceInfoFor(vendorId, productId) {
 
 //3 get permission
 function onPermissionGranted(devicePath, success) {
-  SignStixDebug.info("we got permission granted ");
-  var driverName = "usb";
-  var baudRate = 9600;
-  var stopBits = 1;
-  var dataBits = 8;
-  var parity = 0;
-  var connectionId = SignStixSerial.connect(devicePath, driverName, baudRate, stopBits, dataBits, parity);
-  //starts reading from the serial device
+  if(success) {
+    SignStixDebug.info("we got permission granted ");
+    var driverName = "usb";
+    var baudRate = 9600;
+    var stopBits = 1;
+    var dataBits = 8;
+    var parity = 0;
+    var connectionId = SignStixSerial.connect(devicePath, driverName, baudRate, stopBits, dataBits, parity);
+    //starts reading from the serial device
 
-  SignStixSerial.startReading(connectionId, "globalOnDataRead");
-  SignStixDebug.info("Now starting to read data");
+    SignStixSerial.startReading(connectionId, "globalOnDataRead");
+    SignStixDebug.info("Now starting to read data");
+  }
 }
 
 //4 Read from the device and change content on SignStix device
 function globalOnDataRead(connectionId, hexData) {
   SignStixDebug.info("Now going to read the data");
   printOut("received hex data " + hexData);
-
+  var layer = SignStixGraphics.getLayerNamed('textLayer');
   layer.setText(hexData);
   SignStixGraphics.updateDisplay();
 
-  var value = dataRead(hexData);
-  var amount = manager.countTags();
-
-  manager.storeTag(hexData);
-
   //Check the tag data and find the product related to it
-  var uid = manager.checkTagData();
-  var product = manager.checkProduct(id);
+  // var uid = manager.checkTagData();
+  //var product = manager.checkProduct(hexData);
+  var amount;
+  var str = hexData.toString();
+  printOut("received data " + str);
+  var placedOrRemoved = str.slice(-2);
+  var uid = str.slice(0, -2);
+  // var value = parseInt(num);
+  printOut(placedOrRemoved);
+  printOut(uid);
   //add the product to the twoProduct Class
 
-  switch(value) {
-    case 42:
-    //suggests product picked up;
-    //check for tag in tag data Array
-    //present the product on screen
-    if(twoTags.twoSelected()) {
-      printOut("Jumping to sign which shows two products");
-      // navigationController.changeSign("signWithTwoProducts");
-    } else {
-      printOut("Jumping to sign " + product.getSignName());
-      // navigationController.changeSign(product);
+  switch(placedOrRemoved) {
+    case "01":
+      printOut("Item removed from shelf");
+      manager.storeTag(uid);
+      //suggests product picked up;
+      //check for tag in tag data Array
+      //present the product on screen
+      if(twoTags.twoSelected() == true) {
+        printOut("Jumping to sign which shows two products");
+        // navigationController.changeSign("signWithTwoProducts");
+      } else {
+        printOut("Jumping to sign");
+        // navigationController.changeSign(product)
+      }
+      break;
+    case "02":
+      printOut("Item placed back on shelf");
+      //suggests product has been placed back;
+      //check for tag in tag Array
+      manager.removeTagData(uid);
+      amount = manager.countTags();
+      //For debugging purposes - remove once complete
+      printOut("Number of tags in array " + amount);
+      //check if a tag is left, if not revert to the last tag sign
+      if(amount == 0) {
+        printOut("returning to home screen");
+        // navigationController.returnToHomeScreen();
+      } else {
+        printOut("Only " + amount + " tag left, ")
+        navigationController.changeSign(product);
+      }
+      break;
     }
-    break;
-    case 50:
-    //suggests product has been placed back;
-    //check for tag in tag Array
-    manager.removeTagData(hexData);
-    //check if a tag is left, if not revert to the last tag sign
-    if(amount == 0) {
-      printOut("returning to home screen");
-      // navigationController.returnToHomeScreen();
-    } else {
-      printOut("Only one tag left, ")
-      navigationController.changeSign(product);
-    }
-    break;
-  }
 }
 
 function dataRead(hex) {
